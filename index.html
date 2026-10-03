@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kempes Kasino &mdash; Craps Odds Calculator</title>
+<meta name="description" content="Kempes Kasino: Kasino with a K. A craps odds calculator built for home games.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%F0%9F%8E%B2</text></svg>">
+<style>
+  :root{
+    --felt:#0b3d2e;
+    --felt-dark:#072a20;
+    --gold:#d4af37;
+    --gold-bright:#f1cf5e;
+    --cream:#f5ead0;
+    --red:#8c1f28;
+    --ink:#14100a;
+    --panel:#0f4a37;
+    --panel-border:#1c6b4f;
+    --win:#4caf7d;
+    --lose:#d9735a;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 20% -10%, #114a37 0%, transparent 60%),
+      radial-gradient(circle at 100% 0%, #0a2f23 0%, transparent 50%),
+      var(--felt);
+    background-color:var(--felt);
+    color:var(--cream);
+    font-family:'Georgia','Times New Roman',serif;
+    min-height:100vh;
+    padding:0 0 60px;
+  }
+  .table-texture{
+    background-image:
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.015) 0 2px, transparent 2px 6px);
+  }
+  header{
+    text-align:center;
+    padding:36px 16px 20px;
+    border-bottom:4px solid var(--gold);
+    background:linear-gradient(180deg, var(--felt-dark), var(--felt));
+    position:relative;
+  }
+  .logo-row{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .dice-badge{
+    width:56px;height:56px;
+    background:var(--cream);
+    border-radius:10px;
+    border:3px solid var(--gold);
+    display:flex;align-items:center;justify-content:center;
+    font-size:30px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.4);
+    transform:rotate(-8deg);
+  }
+  .dice-badge.alt{transform:rotate(8deg);}
+  h1{
+    margin:0;
+    font-size:clamp(28px,6vw,48px);
+    letter-spacing:2px;
+    color:var(--gold-bright);
+    text-shadow:0 2px 0 #3a2a05, 0 0 20px rgba(212,175,55,0.35);
+    font-variant:small-caps;
+  }
+  .tagline{
+    margin-top:6px;
+    font-style:italic;
+    color:var(--cream);
+    opacity:0.85;
+    font-size:clamp(13px,2.4vw,17px);
+    letter-spacing:1px;
+  }
+  .tagline-sub{
+    margin-top:2px;
+    font-size:12px;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    color:var(--gold);
+    opacity:0.8;
+  }
+  main{
+    max-width:1100px;
+    margin:0 auto;
+    padding:24px 16px;
+  }
+  .house-rules{
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:var(--radius);
+    padding:16px 20px;
+    margin-bottom:24px;
+    box-shadow:inset 0 0 30px rgba(0,0,0,0.25);
+  }
+  .house-rules h2{
+    margin:0 0 12px;
+    color:var(--gold-bright);
+    font-size:18px;
+    letter-spacing:1px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .house-rules h2::before{content:"\1F0CF";}
+  .rules-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:14px;
+  }
+  .rule-field label{
+    display:block;
+    font-size:13px;
+    color:var(--cream);
+    opacity:0.85;
+    margin-bottom:4px;
+  }
+  select, input[type=number]{
+    width:100%;
+    padding:8px 10px;
+    border-radius:8px;
+    border:1px solid var(--panel-border);
+    background:#0a3a2b;
+    color:var(--cream);
+    font-family:inherit;
+    font-size:14px;
+  }
+  select:focus, input:focus{outline:2px solid var(--gold);}
+  .bet-amount-row{
+    display:flex;
+    gap:14px;
+    align-items:flex-end;
+    margin-bottom:24px;
+    flex-wrap:wrap;
+  }
+  .bet-amount-row .rule-field{flex:1 1 180px;}
+  table.bets{
+    width:100%;
+    border-collapse:collapse;
+    background:var(--panel);
+    border-radius:var(--radius);
+    overflow:hidden;
+    box-shadow:0 8px 24px rgba(0,0,0,0.35);
+  }
+  table.bets caption{
+    text-align:left;
+    padding:10px 16px;
+    background:var(--felt-dark);
+    color:var(--gold-bright);
+    font-size:15px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+  }
+  thead th{
+    text-align:left;
+    padding:10px 14px;
+    background:#0a3a2b;
+    color:var(--gold);
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    border-bottom:2px solid var(--panel-border);
+  }
+  tbody td{
+    padding:10px 14px;
+    border-bottom:1px solid rgba(255,255,255,0.06);
+    font-size:14px;
+  }
+  tbody tr:hover{background:rgba(212,175,55,0.08);}
+  tbody tr:last-child td{border-bottom:none;}
+  .bet-name{font-weight:bold;color:var(--cream);}
+  .bet-name small{display:block;font-weight:normal;opacity:0.65;font-size:11px;}
+  .amt-input{
+    width:90px;
+    padding:6px 8px;
+  }
+  .payout{color:var(--win);font-weight:bold;}
+  .edge{
+    font-weight:bold;
+  }
+  .edge.low{color:var(--win);}
+  .edge.mid{color:var(--gold);}
+  .edge.high{color:var(--lose);}
+  .edge.zero{color:var(--cream);opacity:0.7;}
+  .section-gap{margin-top:28px;}
+  footer{
+    text-align:center;
+    margin-top:40px;
+    padding:20px;
+    color:var(--cream);
+    opacity:0.6;
+    font-size:12px;
+    letter-spacing:1px;
+  }
+  .chip-row{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    margin:10px 0 0;
+  }
+  .chip{
+    width:22px;height:22px;border-radius:50%;
+    border:2px dashed rgba(245,234,208,0.5);
+  }
+  .chip.c1{background:var(--red);}
+  .chip.c2{background:#1d4e8c;}
+  .chip.c3{background:#2f6b3a;}
+  .chip.c4{background:#222;}
+  .chip.c5{background:var(--gold);}
+  .note{
+    font-size:12px;
+    opacity:0.7;
+    margin-top:10px;
+  }
+  .roll-picker-wrap{margin-top:18px;}
+  .roll-picker-wrap > label{
+    display:block;
+    font-size:13px;
+    color:var(--cream);
+    opacity:0.85;
+    margin-bottom:8px;
+  }
+  .roll-picker{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .roll-tile{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:5px;
+    padding:8px 7px 6px;
+    border-radius:10px;
+    border:2px solid var(--panel-border);
+    background:#0a3a2b;
+    cursor:pointer;
+    color:var(--cream);
+    font-family:inherit;
+  }
+  .roll-tile:hover{border-color:var(--gold);}
+  .roll-tile.selected{
+    border-color:var(--gold);
+    background:rgba(212,175,55,0.18);
+    box-shadow:0 0 10px rgba(212,175,55,0.4);
+  }
+  .roll-tile .dice-mini{display:flex;gap:3px;}
+  .die-face{
+    width:26px;height:26px;
+    background:var(--cream);
+    border-radius:5px;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    grid-template-rows:repeat(3,1fr);
+    grid-template-areas:"tl tc tr" "ml mc mr" "bl bc br";
+    padding:3px;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,0.15);
+  }
+  .pip{
+    width:5px;height:5px;
+    border-radius:50%;
+    background:var(--ink);
+    align-self:center;
+    justify-self:center;
+  }
+  .roll-tile .sum-label{font-size:12px;font-weight:bold;color:var(--gold-bright);}
+  .hard-toggle-wrap{
+    display:flex;
+    gap:8px;
+    margin-top:10px;
+  }
+  .hard-toggle-btn{
+    padding:7px 14px;
+    border-radius:8px;
+    border:1px solid var(--panel-border);
+    background:#0a3a2b;
+    color:var(--cream);
+    font-family:inherit;
+    font-size:13px;
+    cursor:pointer;
+  }
+  .hard-toggle-btn.active{
+    border-color:var(--gold);
+    background:rgba(212,175,55,0.2);
+    color:var(--gold-bright);
+    font-weight:bold;
+  }
+  .result-banner{
+    display:inline-block;
+    padding:10px 18px;
+    border-radius:10px;
+    font-size:17px;
+    font-weight:bold;
+    letter-spacing:0.5px;
+  }
+  .result-banner.win{background:rgba(76,175,125,0.2);color:var(--win);border:1px solid var(--win);}
+  .result-banner.lose{background:rgba(217,115,90,0.2);color:var(--lose);border:1px solid var(--lose);}
+  .result-banner.push{background:rgba(212,175,55,0.2);color:var(--gold-bright);border:1px solid var(--gold);}
+  .result-banner.nodecision{background:rgba(245,234,208,0.1);color:var(--cream);border:1px solid var(--panel-border);}
+  .result-detail{margin-top:10px;opacity:1;font-size:14px;line-height:1.6;}
+  @media (max-width:640px){
+    table.bets, thead, tbody, th, td, tr{display:block;}
+    thead{display:none;}
+    tbody tr{
+      border-bottom:2px solid var(--panel-border);
+      padding:10px 14px;
+    }
+    tbody td{
+      border:none;
+      padding:4px 0;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+    }
+    tbody td::before{
+      content:attr(data-label);
+      color:var(--gold);
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:0.5px;
+      flex-shrink:0;
+    }
+  }
+</style>
+</head>
+<body class="table-texture">
+
+<header>
+  <div class="logo-row">
+    <div class="dice-badge">&#x2680;</div>
+    <h1>Kempes Kasino</h1>
+    <div class="dice-badge alt">&#x2685;</div>
+  </div>
+  <div class="tagline">&ldquo;Kasino with a K&rdquo;</div>
+  <div class="tagline-sub">Craps Odds Calculator &middot; Home Game Edition</div>
+  <div class="chip-row">
+    <div class="chip c1"></div><div class="chip c2"></div><div class="chip c3"></div><div class="chip c4"></div><div class="chip c5"></div>
+  </div>
+</header>
+
+<main>
+
+  <div class="house-rules" id="resolver">
+    <h2>Resolve This Roll</h2>
+    <div class="rules-grid">
+      <div class="rule-field">
+        <label for="resBetType">Bet</label>
+        <select id="resBetType">
+          <optgroup label="Line Bets">
+            <option value="pass">Pass Line</option>
+            <option value="dontpass">Don't Pass</option>
+            <option value="come">Come</option>
+            <option value="dontcome">Don't Come</option>
+            <option value="passodds">Pass Line Odds</option>
+            <option value="dpodds">Don't Pass Odds</option>
+          </optgroup>
+          <optgroup label="Place">
+            <option value="place4">Place 4</option>
+            <option value="place5">Place 5</option>
+            <option value="place6">Place 6</option>
+            <option value="place8">Place 8</option>
+            <option value="place9">Place 9</option>
+            <option value="place10">Place 10</option>
+          </optgroup>
+          <optgroup label="Buy">
+            <option value="buy4">Buy 4</option>
+            <option value="buy5">Buy 5</option>
+            <option value="buy6">Buy 6</option>
+            <option value="buy8">Buy 8</option>
+            <option value="buy9">Buy 9</option>
+            <option value="buy10">Buy 10</option>
+          </optgroup>
+          <optgroup label="Lay">
+            <option value="lay4">Lay 4</option>
+            <option value="lay5">Lay 5</option>
+            <option value="lay6">Lay 6</option>
+            <option value="lay8">Lay 8</option>
+            <option value="lay9">Lay 9</option>
+            <option value="lay10">Lay 10</option>
+          </optgroup>
+          <optgroup label="One-Roll &amp; Props">
+            <option value="field">Field</option>
+            <option value="anycraps">Any Craps</option>
+            <option value="anyseven">Any Seven</option>
+            <option value="horn">Horn</option>
+            <option value="cande">C &amp; E</option>
+            <option value="two">Two (Snake Eyes)</option>
+            <option value="three">Three</option>
+            <option value="eleven">Eleven (Yo)</option>
+            <option value="twelve">Twelve (Boxcars)</option>
+          </optgroup>
+          <optgroup label="Hardways &amp; Big">
+            <option value="hard4">Hard 4</option>
+            <option value="hard6">Hard 6</option>
+            <option value="hard8">Hard 8</option>
+            <option value="hard10">Hard 10</option>
+            <option value="big6">Big 6</option>
+            <option value="big8">Big 8</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="rule-field" id="resPhaseField">
+        <label for="resPhase">Phase (line bets only)</label>
+        <select id="resPhase">
+          <option value="comeout">Come-out roll</option>
+          <option value="point">Point is established</option>
+        </select>
+      </div>
+      <div class="rule-field" id="resPointField">
+        <label for="resPoint">Point (for point phase / odds bets)</label>
+        <select id="resPoint">
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6" selected>6</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+        </select>
+      </div>
+      <div class="rule-field">
+        <label for="resAmount">Bet amount ($)</label>
+        <input type="number" id="resAmount" min="0" step="1" value="10">
+      </div>
+      <div class="rule-field" style="align-self:flex-end;">
+        <label>&nbsp;</label>
+        <button id="resolveBtn" style="width:100%;padding:9px 18px;border-radius:8px;border:1px solid var(--gold);background:var(--gold);color:var(--ink);font-weight:bold;cursor:pointer;">Resolve Roll</button>
+      </div>
+    </div>
+
+    <div class="roll-picker-wrap">
+      <label>Roll Result</label>
+      <div id="rollPicker" class="roll-picker"></div>
+      <div id="hardToggleWrap" class="hard-toggle-wrap" style="display:none;">
+        <button type="button" class="hard-toggle-btn" data-hard="false" id="easyBtn">Easy way</button>
+        <button type="button" class="hard-toggle-btn" data-hard="true" id="hardBtn">Hard way (doubles)</button>
+      </div>
+    </div>
+
+    <div id="resResult" class="note" style="margin-top:16px;font-size:16px;"></div>
+  </div>
+
+  <div class="bet-amount-row">
+    <div class="rule-field">
+      <label for="globalAmt">Quick-set all bet amounts ($)</label>
+      <input type="number" id="globalAmt" min="0" step="1" value="10">
+    </div>
+    <div class="rule-field" style="flex:0 0 auto;">
+      <label>&nbsp;</label>
+      <button id="applyAll" style="padding:9px 18px;border-radius:8px;border:1px solid var(--gold);background:var(--gold);color:var(--ink);font-weight:bold;cursor:pointer;">Apply to all bets</button>
+    </div>
+  </div>
+
+  <table class="bets" id="lineBets">
+    <caption>Line &amp; Odds Bets</caption>
+    <thead><tr><th>Bet</th><th>Amount</th><th>True Odds</th><th>Casino Pays</th><th>Win Amount</th><th>House Edge</th></tr></thead>
+    <tbody></tbody>
+  </table>
+
+  <table class="bets section-gap" id="placeBets">
+    <caption>Place, Buy &amp; Lay Bets (on the point)</caption>
+    <thead><tr><th>Bet</th><th>Amount</th><th>True Odds</th><th>Casino Pays</th><th>Win Amount</th><th>House Edge</th></tr></thead>
+    <tbody></tbody>
+  </table>
+
+  <table class="bets section-gap" id="oneRollBets">
+    <caption>One-Roll &amp; Proposition Bets</caption>
+    <thead><tr><th>Bet</th><th>Amount</th><th>True Odds</th><th>Casino Pays</th><th>Win Amount</th><th>House Edge</th></tr></thead>
+    <tbody></tbody>
+  </table>
+
+  <table class="bets section-gap" id="hardwayBets">
+    <caption>Hardways &amp; Big 6/8</caption>
+    <thead><tr><th>Bet</th><th>Amount</th><th>True Odds</th><th>Casino Pays</th><th>Win Amount</th><th>House Edge</th></tr></thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="house-rules section-gap">
+    <h2>House Rules</h2>
+    <div class="rules-grid">
+      <div class="rule-field">
+        <label for="oddsMultiple">Odds allowed (Pass/Don't Pass, Come/Don't Come)</label>
+        <select id="oddsMultiple">
+          <option value="1">1x</option>
+          <option value="2">2x</option>
+          <option value="3" selected>3x</option>
+          <option value="5">5x</option>
+          <option value="10">10x</option>
+          <option value="345">3-4-5x (point-based)</option>
+          <option value="20">20x (high-roller home game)</option>
+        </select>
+      </div>
+      <div class="rule-field">
+        <label for="fieldPay">Field bet payout (2 and 12)</label>
+        <select id="fieldPay">
+          <option value="2-2">2:1 on both 2 &amp; 12</option>
+          <option value="2-3" selected>2:1 on 2, 3:1 on 12 (standard)</option>
+          <option value="3-3">3:1 on both 2 &amp; 12 (player-friendly)</option>
+        </select>
+      </div>
+      <div class="rule-field">
+        <label for="vigRule">Buy/Lay commission (vig)</label>
+        <select id="vigRule">
+          <option value="upfront" selected>5% charged up front, every bet</option>
+          <option value="onwin">5% charged only on winning bets</option>
+        </select>
+      </div>
+      <div class="rule-field">
+        <label for="point">Current point (for odds/place/buy/lay rows)</label>
+        <select id="point">
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6" selected>6</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+        </select>
+      </div>
+    </div>
+    <p class="note">These toggles only change the bets a real home game commonly customizes (odds limit, field pay, vig timing). True odds and house edge update live for every row below, and feed the Resolve This Roll payouts above. "House Edge" is the casino/bank's long-run expected cut of every dollar wagered &mdash; lower is better for the player.</p>
+  </div>
+
+</main>
+
+<footer>
+  Kempes Kasino &mdash; Kasino with a K &middot; For home-game fun only. No real wagers placed here.
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  function gcd(a,b){ return b===0 ? a : gcd(b,a%b); }
+  function ratioStr(num,den){
+    var g = gcd(num,den) || 1;
+    return (num/g) + ":" + (den/g);
+  }
+  function fmtMoney(n){
+    var sign = n<0 ? "-" : "";
+    return sign + "$" + Math.abs(n).toFixed(2).replace(/\.00$/,"");
+  }
+  function edgeClass(pct){
+    if (pct <= 0.02) return pct===0 ? "zero" : "low";
+    if (pct <= 0.06) return "mid";
+    return "high";
+  }
+
+  var pointWays = { 4:3, 5:4, 6:5, 8:5, 9:4, 10:3 };
+
+  function pointOddsMultiple(selectValue, point){
+    if (selectValue === "345"){
+      if (point===4 || point===10) return 3;
+      if (point===5 || point===9) return 4;
+      return 5; // 6 or 8
+    }
+    return parseFloat(selectValue);
+  }
+
+  function els(){
+    return {
+      oddsMultiple: document.getElementById('oddsMultiple').value,
+      fieldPay: document.getElementById('fieldPay').value,
+      vigRule: document.getElementById('vigRule').value,
+      point: parseInt(document.getElementById('point').value,10)
+    };
+  }
+
+  // ---- Bet definitions ----
+  // Each bet computes { trueOdds:[num,den], pays:[num,den], edge: fraction } given state & point & amount
+  function buildLineBets(state){
+    var p = state.point;
+    var waysP = pointWays[p];
+    var waysSeven = 6;
+    // Pass line true odds vary by point for the *combined* bet, but the flat pass-line bet itself
+    // is quoted as a whole-game edge (1.41%) independent of a single point snapshot.
+    var rows = [];
+
+    rows.push({
+      id:'pass', name:'Pass Line', sub:'Flat bet, resolved over the full line',
+      trueOdds:[251,244], pays:[1,1], edge:0.0141
+    });
+    rows.push({
+      id:'dontpass', name:"Don't Pass", sub:'Flat bet, bar 12 (or bar 2)',
+      trueOdds:[976,949], pays:[1,1], edge:0.0136
+    });
+    rows.push({
+      id:'come', name:'Come', sub:'Same math as Pass Line, started any time',
+      trueOdds:[251,244], pays:[1,1], edge:0.0141
+    });
+    rows.push({
+      id:'dontcome', name:"Don't Come", sub:"Same math as Don't Pass",
+      trueOdds:[976,949], pays:[1,1], edge:0.0136
+    });
+
+    var oddsMult = pointOddsMultiple(state.oddsMultiple, p);
+    var passOddsPay = (p===4||p===10) ? [2,1] : (p===5||p===9) ? [3,2] : [6,5];
+    rows.push({
+      id:'passodds', name:'Pass Line Odds', sub:'On point '+p+' &middot; '+state.oddsMultipleLabel+' odds, true odds &mdash; zero house edge',
+      trueOdds:passOddsPay, pays:passOddsPay, edge:0, oddsMultiple:oddsMult
+    });
+    var dpOddsPay = (p===4||p===10) ? [1,2] : (p===5||p===9) ? [2,3] : [5,6];
+    rows.push({
+      id:'dpodds', name:"Don't Pass Odds", sub:'On point '+p+' &middot; lay odds, true odds &mdash; zero house edge',
+      trueOdds:dpOddsPay, pays:dpOddsPay, edge:0, oddsMultiple:oddsMult
+    });
+
+    return rows;
+  }
+
+  function buildPlaceBets(state){
+    var p = state.point;
+    var rows = [];
+    var placePay = {4:[9,5],10:[9,5],5:[7,5],9:[7,5],6:[7,6],8:[7,6]};
+    var placeEdge = {4:0.0667,10:0.0667,5:0.04,9:0.04,6:0.0152,8:0.0152};
+    [4,5,6,8,9,10].forEach(function(n){
+      var trueO = [6/pointWays[n]*1, 0]; // placeholder, recompute below properly
+    });
+
+    function trueOddsAgainst(n){
+      return ratioParts(6-pointWays[n], pointWays[n]); // ways to lose : ways to win, as "no:ways"
+    }
+    function ratioParts(a,b){ var g=gcd(a,b)||1; return [a/g,b/g]; }
+
+    [4,5,6,8,9,10].forEach(function(n){
+      var to = trueOddsAgainst(n); // [7-point-ways? ] -> true odds AGAINST making the point = (6-ways):ways
+      rows.push({
+        id:'place'+n, name:'Place '+n, sub: n===p ? '(the point)' : 'Win if '+n+' rolls before 7',
+        trueOdds: to, pays: placePay[n], edge: placeEdge[n]
+      });
+    });
+
+    var buyEdgeUpfront = {4:0.0476,10:0.0476,5:0.0476,9:0.0476,6:0.0476,8:0.0476};
+    var buyEdgeOnWin = {4:0.0167,10:0.0167,5:0.0233,9:0.0233,6:0.0167,8:0.0167};
+    [4,5,6,8,9,10].forEach(function(n){
+      var to = ratioParts(6-pointWays[n], pointWays[n]);
+      var truePay = (n===4||n===10) ? [2,1] : (n===5||n===9) ? [3,2] : [6,5];
+      var edge = state.vigRule==='upfront' ? buyEdgeUpfront[n] : buyEdgeOnWin[n];
+      rows.push({
+        id:'buy'+n, name:'Buy '+n, sub:'True odds pay, minus 5% vig ('+ (state.vigRule==='upfront'?'charged upfront':'charged on win') +')',
+        trueOdds: to, pays: truePay, edge: edge, vig:true
+      });
+    });
+
+    var layEdgeUpfront = {4:0.0244,10:0.0244,5:0.0313,9:0.0313,6:0.04,8:0.04};
+    [4,5,6,8,9,10].forEach(function(n){
+      var to = ratioParts(pointWays[n], 6-pointWays[n]); // lay is opposite direction
+      var truePay = (n===4||n===10) ? [1,2] : (n===5||n===9) ? [2,3] : [5,6];
+      rows.push({
+        id:'lay'+n, name:'Lay '+n, sub:'Betting 7 comes before '+n+' &middot; 5% vig on win',
+        trueOdds: to, pays: truePay, edge: layEdgeUpfront[n], vig:true
+      });
+    });
+
+    return rows;
+  }
+
+  function buildOneRollBets(state){
+    var rows = [];
+    var fieldEdge = { '2-2':0.0556, '2-3':0.0278, '3-3':0.0139 };
+    rows.push({
+      id:'field', name:'Field', sub:'One roll &middot; wins on 2,3,4,9,10,11,12',
+      trueOdds:[10,7], pays: state.fieldPay==='3-3' ? [3,1] : (state.fieldPay==='2-2' ? [2,1] : [1,1]),
+      payNote: state.fieldPay==='2-3' ? '2:1 on 2, 3:1 on 12, else 1:1' : (state.fieldPay==='3-3' ? '3:1 on 2 &amp; 12, else 1:1' : '2:1 on 2 &amp; 12, else 1:1'),
+      edge: fieldEdge[state.fieldPay]
+    });
+    rows.push({ id:'anycraps', name:'Any Craps', sub:'One roll &middot; wins on 2, 3, or 12', trueOdds:[8,1], pays:[7,1], edge:0.1111 });
+    rows.push({ id:'anyseven', name:'Any Seven', sub:'One roll &middot; wins on 7', trueOdds:[5,1], pays:[4,1], edge:0.1667 });
+    rows.push({ id:'horn', name:'Horn (2,3,11,12)', sub:'Split 4 ways &middot; pays by number hit', trueOdds:[60,1], pays:[27.5,1], edge:0.1250 });
+    rows.push({ id:'cande', name:'C &amp; E (Craps &amp; Eleven)', sub:'Split bet &middot; craps or eleven', trueOdds:[18,1], pays:[7.5,1], edge:0.1111 });
+    rows.push({ id:'two', name:'Two (Snake Eyes)', sub:'One roll &middot; wins on 2 only', trueOdds:[35,1], pays:[30,1], edge:0.1389 });
+    rows.push({ id:'twelve', name:'Twelve (Boxcars)', sub:'One roll &middot; wins on 12 only', trueOdds:[35,1], pays:[30,1], edge:0.1389 });
+    rows.push({ id:'three', name:'Three', sub:'One roll &middot; wins on 3 only', trueOdds:[17,1], pays:[15,1], edge:0.1111 });
+    rows.push({ id:'eleven', name:'Eleven (Yo)', sub:'One roll &middot; wins on 11 only', trueOdds:[17,1], pays:[15,1], edge:0.1111 });
+    return rows;
+  }
+
+  function buildHardwayBets(state){
+    var rows = [];
+    rows.push({ id:'hard4', name:'Hard 4', sub:'2+2 before easy 4 or any 7', trueOdds:[8,1], pays:[7,1], edge:0.1111 });
+    rows.push({ id:'hard10', name:'Hard 10', sub:'5+5 before easy 10 or any 7', trueOdds:[8,1], pays:[7,1], edge:0.1111 });
+    rows.push({ id:'hard6', name:'Hard 6', sub:'3+3 before easy 6 or any 7', trueOdds:[10,1], pays:[9,1], edge:0.0909 });
+    rows.push({ id:'hard8', name:'Hard 8', sub:'4+4 before easy 8 or any 7', trueOdds:[10,1], pays:[9,1], edge:0.0909 });
+    rows.push({ id:'big6', name:'Big 6', sub:'6 before 7', trueOdds:[6,5], pays:[1,1], edge:0.0909 });
+    rows.push({ id:'big8', name:'Big 8', sub:'8 before 7', trueOdds:[6,5], pays:[1,1], edge:0.0909 });
+    return rows;
+  }
+
+  function oddsLabelFor(val){
+    switch(val){
+      case '1': return '1x';
+      case '2': return '2x';
+      case '3': return '3x';
+      case '5': return '5x';
+      case '10': return '10x';
+      case '20': return '20x';
+      case '345': return '3-4-5x';
+      default: return val+'x';
+    }
+  }
+
+  var amounts = {}; // bet id -> amount
+
+  function renderTable(tableId, rows){
+    var tbody = document.querySelector('#'+tableId+' tbody');
+    tbody.innerHTML = '';
+    rows.forEach(function(row){
+      if (amounts[row.id] === undefined) amounts[row.id] = 10;
+      var amt = amounts[row.id];
+      var oddsMult = row.oddsMultiple || 1;
+      var effectiveAmt = row.oddsMultiple ? amt * oddsMult : amt;
+
+      var winAmt = effectiveAmt * (row.pays[0]/row.pays[1]);
+      var tr = document.createElement('tr');
+
+      var edgeCls = edgeClass(row.edge);
+      var edgePct = (row.edge*100).toFixed(2) + '%';
+
+      var subLabel = row.oddsMultiple ? row.sub : row.sub;
+
+      tr.innerHTML =
+        '<td data-label="Bet"><span class="bet-name">'+row.name+'<small>'+subLabel+(row.payNote? ' &middot; '+row.payNote:'')+'</small></span></td>'+
+        '<td data-label="Amount"><input class="amt-input" type="number" min="0" step="1" data-bet="'+row.id+'" value="'+amt+'"></td>'+
+        '<td data-label="True Odds">'+row.trueOdds[0]+':'+row.trueOdds[1]+'</td>'+
+        '<td data-label="Casino Pays">'+row.pays[0]+':'+row.pays[1]+'</td>'+
+        '<td data-label="Win Amount" class="payout">'+fmtMoney(winAmt)+(row.oddsMultiple? ' <small style="opacity:.6">(on '+fmtMoney(effectiveAmt)+' @ '+oddsMult+'x)</small>':'')+'</td>'+
+        '<td data-label="House Edge" class="edge '+edgeCls+'">'+edgePct+'</td>';
+      tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll('.amt-input').forEach(function(input){
+      input.addEventListener('input', function(){
+        var v = parseFloat(this.value);
+        amounts[this.getAttribute('data-bet')] = isNaN(v) ? 0 : v;
+        renderAll();
+      });
+    });
+  }
+
+  function renderAll(){
+    var state = els();
+    state.oddsMultipleLabel = oddsLabelFor(state.oddsMultiple);
+    renderTable('lineBets', buildLineBets(state));
+    renderTable('placeBets', buildPlaceBets(state));
+    renderTable('oneRollBets', buildOneRollBets(state));
+    renderTable('hardwayBets', buildHardwayBets(state));
+  }
+
+  ['oddsMultiple','fieldPay','vigRule','point'].forEach(function(id){
+    document.getElementById(id).addEventListener('change', renderAll);
+  });
+
+  document.getElementById('applyAll').addEventListener('click', function(){
+    var v = parseFloat(document.getElementById('globalAmt').value);
+    if (isNaN(v)) v = 0;
+    Object.keys(amounts).forEach(function(k){ amounts[k] = v; });
+    renderAll();
+  });
+
+  renderAll();
+
+  // ---- Resolve This Roll ----
+
+  var placePayR = {4:[9,5],10:[9,5],5:[7,5],9:[7,5],6:[7,6],8:[7,6]};
+  var buyTrueR  = {4:[2,1],10:[2,1],5:[3,2],9:[3,2],6:[6,5],8:[6,5]};
+  var layTrueR  = {4:[1,2],10:[1,2],5:[2,3],9:[2,3],6:[5,6],8:[5,6]};
+  var hardPayR  = {4:7,10:7,6:9,8:9};
+
+  function R(outcome, profit, amount, detail){
+    var totalReturn = outcome==='win' ? amount+profit : (outcome==='lose' ? 0 : amount);
+    var winAmount = outcome==='win' ? profit : (outcome==='lose' ? -amount : 0);
+    return { outcome:outcome, winAmount:winAmount, totalReturn:totalReturn, detail:detail };
+  }
+
+  function resolveLineBet(dont, phase, sum, point, amount, label){
+    if (phase==='comeout'){
+      if (sum===7||sum===11) return dont ? R('lose',0,amount,label+': natural '+sum+' on the come-out &mdash; loses.') : R('win',amount,amount,label+': natural '+sum+' on the come-out &mdash; wins even money.');
+      if (sum===2||sum===3) return dont ? R('win',amount,amount,label+': craps '+sum+' on the come-out &mdash; wins even money.') : R('lose',0,amount,label+': craps '+sum+' on the come-out &mdash; loses.');
+      if (sum===12) return dont ? R('push',0,amount,label+": 12 is barred on the come-out &mdash; push, bet returned.") : R('lose',0,amount,label+': craps 12 on the come-out &mdash; loses.');
+      return R('nodecision',0,amount,label+': point established at '+sum+'. Bet stays up, no decision yet.');
+    }
+    if (sum===point) return dont ? R('lose',0,amount,label+': point ('+point+') repeats &mdash; loses.') : R('win',amount,amount,label+': point ('+point+') repeats &mdash; wins even money.');
+    if (sum===7) return dont ? R('win',amount,amount,label+': seven-out &mdash; wins even money.') : R('lose',0,amount,label+': seven-out &mdash; loses.');
+    return R('nodecision',0,amount,label+': roll of '+sum+' &mdash; no decision, point still '+point+'.');
+  }
+
+  function resolveOddsBet(dont, sum, point, amount){
+    var pay = dont ? ((point===4||point===10)?[1,2]:(point===5||point===9)?[2,3]:[5,6])
+                   : ((point===4||point===10)?[2,1]:(point===5||point===9)?[3,2]:[6,5]);
+    var label = dont ? "Don't Pass Odds" : 'Pass Line Odds';
+    if (sum===point) return dont ? R('lose',0,amount,label+': point repeats &mdash; lay odds lose.') : R('win', amount*pay[0]/pay[1], amount, label+': point repeats &mdash; true-odds win, no house edge.');
+    if (sum===7) return dont ? R('win', amount*pay[0]/pay[1], amount, label+': seven-out &mdash; lay odds win, no house edge.') : R('lose',0,amount,label+': seven-out &mdash; odds lose.');
+    return R('nodecision',0,amount,label+': roll of '+sum+' &mdash; no decision.');
+  }
+
+  function resolvePlaceBet(n, sum, amount){
+    var pay = placePayR[n];
+    if (sum===n) return R('win', amount*pay[0]/pay[1], amount, 'Place '+n+': number hits &mdash; wins '+pay[0]+':'+pay[1]+'.');
+    if (sum===7) return R('lose',0,amount,'Place '+n+': seven-out &mdash; loses.');
+    return R('nodecision',0,amount,'Place '+n+': roll of '+sum+' &mdash; no decision.');
+  }
+
+  function resolveBuyBet(n, sum, amount, vigRule){
+    var pay = buyTrueR[n];
+    var vig = amount*0.05;
+    if (sum===n){
+      var gross = amount*pay[0]/pay[1];
+      var net = vigRule==='upfront' ? gross : gross-vig;
+      var detail = 'Buy '+n+': true odds '+pay[0]+':'+pay[1]+' = '+fmtMoney(gross)+'. ' + (vigRule==='upfront' ? '5% vig ('+fmtMoney(vig)+') already paid when you bought in.' : '5% vig ('+fmtMoney(vig)+') deducted from this win.');
+      return R('win', net, amount, detail);
+    }
+    if (sum===7) return R('lose',0,amount,'Buy '+n+': seven-out &mdash; loses the bet.');
+    return R('nodecision',0,amount,'Buy '+n+': roll of '+sum+' &mdash; no decision.');
+  }
+
+  function resolveLayBet(n, sum, amount, vigRule){
+    var pay = layTrueR[n];
+    var vig = amount*0.05;
+    if (sum===7){
+      var gross = amount*pay[0]/pay[1];
+      var net = vigRule==='upfront' ? gross : gross-vig;
+      var detail = 'Lay '+n+': seven-out, true odds '+pay[0]+':'+pay[1]+' = '+fmtMoney(gross)+'. ' + (vigRule==='upfront' ? '5% vig ('+fmtMoney(vig)+') already paid when you laid it.' : '5% vig ('+fmtMoney(vig)+') deducted from this win.');
+      return R('win', net, amount, detail);
+    }
+    if (sum===n) return R('lose',0,amount,'Lay '+n+': number hits before 7 &mdash; loses.');
+    return R('nodecision',0,amount,'Lay '+n+': roll of '+sum+' &mdash; no decision.');
+  }
+
+  function resolveField(sum, amount, fieldPay){
+    if ([3,4,9,10,11].indexOf(sum)>=0) return R('win',amount,amount,'Field: '+sum+' wins even money.');
+    if (sum===2){
+      var m = fieldPay==='3-3' ? 3 : 2;
+      return R('win', amount*m, amount, 'Field: 2 wins '+m+':1.');
+    }
+    if (sum===12){
+      var m2 = (fieldPay==='2-3'||fieldPay==='3-3') ? 3 : 2;
+      return R('win', amount*m2, amount, 'Field: 12 wins '+m2+':1.');
+    }
+    return R('lose',0,amount,'Field: '+sum+' loses.');
+  }
+
+  function resolveSingle(sum, target, payMult, amount, label){
+    if (sum===target) return R('win', amount*payMult, amount, label+': wins '+payMult+':1.');
+    return R('lose',0,amount,label+': '+sum+' loses.');
+  }
+
+  function resolveHorn(sum, amount){
+    var quarter = amount/4;
+    if ([2,12].indexOf(sum)>=0) return R('win', quarter*30 - (amount-quarter), amount, 'Horn: '+sum+' hits &mdash; quarter ('+fmtMoney(quarter)+') pays 30:1, other quarters lose.');
+    if ([3,11].indexOf(sum)>=0) return R('win', quarter*15 - (amount-quarter), amount, 'Horn: '+sum+' hits &mdash; quarter ('+fmtMoney(quarter)+') pays 15:1, other quarters lose.');
+    return R('lose',0,amount,'Horn: '+sum+' loses.');
+  }
+
+  function resolveCandE(sum, amount){
+    var half = amount/2;
+    if ([2,3,12].indexOf(sum)>=0) return R('win', half*7 - half, amount, 'C&E: craps '+sum+' &mdash; craps half ('+fmtMoney(half)+') pays 7:1, eleven half loses.');
+    if (sum===11) return R('win', half*15 - half, amount, 'C&E: eleven &mdash; eleven half ('+fmtMoney(half)+') pays 15:1, craps half loses.');
+    return R('lose',0,amount,'C&E: '+sum+' loses.');
+  }
+
+  function resolveHardway(n, sum, isHard, amount){
+    if (sum===n && isHard) return R('win', amount*hardPayR[n], amount, 'Hard '+n+': rolled the hard way &mdash; wins '+hardPayR[n]+':1.');
+    if (sum===7) return R('lose',0,amount,'Hard '+n+': seven-out &mdash; loses.');
+    if (sum===n && !isHard) return R('lose',0,amount,'Hard '+n+': made the easy way &mdash; loses.');
+    return R('nodecision',0,amount,'Hard '+n+': roll of '+sum+' &mdash; no decision.');
+  }
+
+  function resolveBig(n, sum, amount){
+    if (sum===n) return R('win', amount, amount, 'Big '+n+': hits &mdash; wins even money.');
+    if (sum===7) return R('lose',0,amount,'Big '+n+': seven-out &mdash; loses.');
+    return R('nodecision',0,amount,'Big '+n+': roll of '+sum+' &mdash; no decision.');
+  }
+
+  function resolveBet(bet, sum, isHard, phase, point, amount, state){
+    if (bet==='pass') return resolveLineBet(false, phase, sum, point, amount, 'Pass Line');
+    if (bet==='dontpass') return resolveLineBet(true, phase, sum, point, amount, "Don't Pass");
+    if (bet==='come') return resolveLineBet(false, phase, sum, point, amount, 'Come');
+    if (bet==='dontcome') return resolveLineBet(true, phase, sum, point, amount, "Don't Come");
+    if (bet==='passodds') return resolveOddsBet(false, sum, point, amount);
+    if (bet==='dpodds') return resolveOddsBet(true, sum, point, amount);
+    var m;
+    if ((m=bet.match(/^place(\d+)$/))) return resolvePlaceBet(parseInt(m[1],10), sum, amount);
+    if ((m=bet.match(/^buy(\d+)$/))) return resolveBuyBet(parseInt(m[1],10), sum, amount, state.vigRule);
+    if ((m=bet.match(/^lay(\d+)$/))) return resolveLayBet(parseInt(m[1],10), sum, amount, state.vigRule);
+    if (bet==='field') return resolveField(sum, amount, state.fieldPay);
+    if (bet==='anycraps') return resolveSingleSet(sum, [2,3,12], 7, amount, 'Any Craps');
+    if (bet==='anyseven') return resolveSingle(sum, 7, 4, amount, 'Any Seven');
+    if (bet==='two') return resolveSingle(sum, 2, 30, amount, 'Two');
+    if (bet==='twelve') return resolveSingle(sum, 12, 30, amount, 'Twelve');
+    if (bet==='three') return resolveSingle(sum, 3, 15, amount, 'Three');
+    if (bet==='eleven') return resolveSingle(sum, 11, 15, amount, 'Eleven');
+    if (bet==='horn') return resolveHorn(sum, amount);
+    if (bet==='cande') return resolveCandE(sum, amount);
+    if ((m=bet.match(/^hard(\d+)$/))) return resolveHardway(parseInt(m[1],10), sum, isHard, amount);
+    if (bet==='big6') return resolveBig(6, sum, amount);
+    if (bet==='big8') return resolveBig(8, sum, amount);
+    return R('nodecision',0,amount,'Unknown bet.');
+  }
+
+  function resolveSingleSet(sum, targets, payMult, amount, label){
+    if (targets.indexOf(sum)>=0) return R('win', amount*payMult, amount, label+': '+sum+' wins '+payMult+':1.');
+    return R('lose',0,amount,label+': '+sum+' loses.');
+  }
+
+  // ---- Roll picker UI ----
+  var pipMap = {
+    1:['mc'], 2:['tl','br'], 3:['tl','mc','br'],
+    4:['tl','tr','bl','br'], 5:['tl','tr','mc','bl','br'], 6:['tl','tr','ml','mr','bl','br']
+  };
+  function dieFaceHTML(n){
+    var html = '<div class="die-face">';
+    pipMap[n].forEach(function(area){ html += '<div class="pip" style="grid-area:'+area+';"></div>'; });
+    html += '</div>';
+    return html;
+  }
+  var easyCombo = {2:[1,1],3:[1,2],4:[1,3],5:[1,4],6:[1,5],7:[1,6],8:[2,6],9:[3,6],10:[4,6],11:[5,6],12:[6,6]};
+  var hardCombo = {4:[2,2],6:[3,3],8:[4,4],10:[5,5]};
+  function sumCombo(sum, hard){
+    return (hard && hardCombo[sum]) ? hardCombo[sum] : easyCombo[sum];
+  }
+
+  var selectedSum = null;
+  var selectedHard = false;
+  var hardSums = [4,6,8,10];
+
+  function renderRollPicker(){
+    var container = document.getElementById('rollPicker');
+    container.innerHTML = '';
+    for (var s=2; s<=12; s++){
+      (function(sum){
+        var combo = sumCombo(sum, selectedSum===sum && selectedHard);
+        var tile = document.createElement('button');
+        tile.type = 'button';
+        tile.className = 'roll-tile' + (selectedSum===sum ? ' selected' : '');
+        tile.innerHTML = '<div class="dice-mini">'+dieFaceHTML(combo[0])+dieFaceHTML(combo[1])+'</div><div class="sum-label">'+sum+'</div>';
+        tile.addEventListener('click', function(){
+          selectedSum = sum;
+          if (hardSums.indexOf(sum) < 0) selectedHard = false;
+          renderRollPicker();
+          updateHardToggleVisibility();
+        });
+        container.appendChild(tile);
+      })(s);
+    }
+  }
+
+  function updateHardToggleVisibility(){
+    var wrap = document.getElementById('hardToggleWrap');
+    var show = selectedSum!==null && hardSums.indexOf(selectedSum)>=0;
+    wrap.style.display = show ? 'flex' : 'none';
+    document.getElementById('easyBtn').classList.toggle('active', !selectedHard);
+    document.getElementById('hardBtn').classList.toggle('active', selectedHard);
+  }
+
+  document.getElementById('easyBtn').addEventListener('click', function(){ selectedHard=false; renderRollPicker(); updateHardToggleVisibility(); });
+  document.getElementById('hardBtn').addEventListener('click', function(){ selectedHard=true; renderRollPicker(); updateHardToggleVisibility(); });
+
+  renderRollPicker();
+  updateHardToggleVisibility();
+
+  var lineBetsSet = ['pass','dontpass','come','dontcome'];
+  var oddsBetsSet = ['passodds','dpodds'];
+  function updateResolverFieldVisibility(){
+    var bet = document.getElementById('resBetType').value;
+    var needsPhase = lineBetsSet.indexOf(bet)>=0;
+    var needsPoint = needsPhase || oddsBetsSet.indexOf(bet)>=0;
+    document.getElementById('resPhaseField').style.display = needsPhase ? '' : 'none';
+    document.getElementById('resPointField').style.display = needsPoint ? '' : 'none';
+  }
+  document.getElementById('resBetType').addEventListener('change', updateResolverFieldVisibility);
+  updateResolverFieldVisibility();
+
+  function renderResolveResult(res){
+    var labelMap = {win:'WIN', lose:'LOSE', push:'PUSH', nodecision:'NO DECISION &mdash; BET STAYS UP'};
+    var banner = '<span class="result-banner '+res.outcome+'">'+labelMap[res.outcome]+'</span>';
+    var sub;
+    if (res.outcome==='win') sub = 'Profit: '+fmtMoney(res.winAmount)+' &middot; Total returned: '+fmtMoney(res.totalReturn);
+    else if (res.outcome==='lose') sub = 'Bet lost: '+fmtMoney(Math.abs(res.winAmount));
+    else if (res.outcome==='push') sub = 'Bet returned in full.';
+    else sub = 'Bet amount ('+fmtMoney(res.totalReturn)+') stays on the table.';
+    document.getElementById('resResult').innerHTML = banner + '<div class="result-detail">'+res.detail+'<br>'+sub+'</div>';
+  }
+
+  document.getElementById('resolveBtn').addEventListener('click', function(){
+    if (selectedSum===null){
+      document.getElementById('resResult').innerHTML = '<span style="color:var(--lose);">Pick a roll result first.</span>';
+      return;
+    }
+    var bet = document.getElementById('resBetType').value;
+    var phase = document.getElementById('resPhase').value;
+    var point = parseInt(document.getElementById('resPoint').value,10);
+    var amount = parseFloat(document.getElementById('resAmount').value) || 0;
+    var houseState = els();
+    var res = resolveBet(bet, selectedSum, selectedHard, phase, point, amount, houseState);
+    renderResolveResult(res);
+  });
+
+})();
+</script>
+
+</body>
+</html>
