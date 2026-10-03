@@ -979,7 +979,7 @@
     var labelMap = {win:'WIN', lose:'LOSE', push:'PUSH', nodecision:'NO DECISION &mdash; BET STAYS UP'};
     var banner = '<span class="result-banner '+res.outcome+'">'+labelMap[res.outcome]+'</span>';
     var sub;
-    if (res.outcome==='win') sub = 'Profit: '+fmtMoney(res.winAmount)+' &middot; Total returned: '+fmtMoney(res.totalReturn);
+    if (res.outcome==='win') sub = 'Profit: '+fmtMoney(res.winAmount)+' &middot; That pays '+fmtMoney(res.totalReturn)+' in this Kasino every time.';
     else if (res.outcome==='lose') sub = 'Bet lost: '+fmtMoney(Math.abs(res.winAmount));
     else if (res.outcome==='push') sub = 'Bet returned in full.';
     else sub = 'Bet amount ('+fmtMoney(res.totalReturn)+') stays on the table.';
