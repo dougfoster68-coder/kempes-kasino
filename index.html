@@ -25,18 +25,20 @@
   html,body{margin:0;padding:0;}
   body{
     background:
-      radial-gradient(circle at 20% -10%, #114a37 0%, transparent 60%),
-      radial-gradient(circle at 100% 0%, #0a2f23 0%, transparent 50%),
-      var(--felt);
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.015) 0 2px, transparent 2px 6px),
+      radial-gradient(circle at 20% -10%, rgba(17,74,55,0.9) 0%, transparent 60%),
+      radial-gradient(circle at 100% 0%, rgba(10,47,35,0.92) 0%, transparent 50%),
+      linear-gradient(rgba(7,42,32,0.88), rgba(7,42,32,0.88)),
+      url('kasino-bg.jpg');
     background-color:var(--felt);
+    background-size:auto,auto,auto,cover,cover;
+    background-position:center,center,center,center,center top;
+    background-attachment:fixed,fixed,fixed,fixed,fixed;
+    background-repeat:repeat,no-repeat,no-repeat,no-repeat,no-repeat;
     color:var(--cream);
     font-family:'Georgia','Times New Roman',serif;
     min-height:100vh;
     padding:0 0 60px;
-  }
-  .table-texture{
-    background-image:
-      repeating-linear-gradient(135deg, rgba(255,255,255,0.015) 0 2px, transparent 2px 6px);
   }
   header{
     text-align:center;
@@ -271,27 +273,6 @@
     justify-self:center;
   }
   .roll-tile .sum-label{font-size:12px;font-weight:bold;color:var(--gold-bright);}
-  .hard-toggle-wrap{
-    display:flex;
-    gap:8px;
-    margin-top:10px;
-  }
-  .hard-toggle-btn{
-    padding:7px 14px;
-    border-radius:8px;
-    border:1px solid var(--panel-border);
-    background:#0a3a2b;
-    color:var(--cream);
-    font-family:inherit;
-    font-size:13px;
-    cursor:pointer;
-  }
-  .hard-toggle-btn.active{
-    border-color:var(--gold);
-    background:rgba(212,175,55,0.2);
-    color:var(--gold-bright);
-    font-weight:bold;
-  }
   .result-banner{
     display:inline-block;
     padding:10px 18px;
@@ -330,7 +311,7 @@
   }
 </style>
 </head>
-<body class="table-texture">
+<body>
 
 <header>
   <div class="logo-row">
@@ -407,21 +388,10 @@
         </select>
       </div>
       <div class="rule-field" id="resPhaseField">
-        <label for="resPhase">Phase (line bets only)</label>
+        <label for="resPhase">Phase (line bets only &mdash; point number comes from House Rules below)</label>
         <select id="resPhase">
           <option value="comeout">Come-out roll</option>
           <option value="point">Point is established</option>
-        </select>
-      </div>
-      <div class="rule-field" id="resPointField">
-        <label for="resPoint">Point (for point phase / odds bets)</label>
-        <select id="resPoint">
-          <option value="4">4</option>
-          <option value="5">5</option>
-          <option value="6" selected>6</option>
-          <option value="8">8</option>
-          <option value="9">9</option>
-          <option value="10">10</option>
         </select>
       </div>
       <div class="rule-field">
@@ -437,10 +407,8 @@
     <div class="roll-picker-wrap">
       <label>Roll Result</label>
       <div id="rollPicker" class="roll-picker"></div>
-      <div id="hardToggleWrap" class="hard-toggle-wrap" style="display:none;">
-        <button type="button" class="hard-toggle-btn" data-hard="false" id="easyBtn">Easy way</button>
-        <button type="button" class="hard-toggle-btn" data-hard="true" id="hardBtn">Hard way (doubles)</button>
-      </div>
+      <label style="margin-top:14px;">Hardways (rolled as doubles)</label>
+      <div id="hardwayPicker" class="roll-picker"></div>
     </div>
 
     <div id="resResult" class="note" style="margin-top:16px;font-size:16px;"></div>
@@ -933,44 +901,51 @@
     container.innerHTML = '';
     for (var s=2; s<=12; s++){
       (function(sum){
-        var combo = sumCombo(sum, selectedSum===sum && selectedHard);
+        var isSelected = selectedSum===sum && !selectedHard;
+        var combo = sumCombo(sum, false);
         var tile = document.createElement('button');
         tile.type = 'button';
-        tile.className = 'roll-tile' + (selectedSum===sum ? ' selected' : '');
+        tile.className = 'roll-tile' + (isSelected ? ' selected' : '');
         tile.innerHTML = '<div class="dice-mini">'+dieFaceHTML(combo[0])+dieFaceHTML(combo[1])+'</div><div class="sum-label">'+sum+'</div>';
         tile.addEventListener('click', function(){
           selectedSum = sum;
-          if (hardSums.indexOf(sum) < 0) selectedHard = false;
+          selectedHard = false;
           renderRollPicker();
-          updateHardToggleVisibility();
+          renderHardwayPicker();
         });
         container.appendChild(tile);
       })(s);
     }
   }
 
-  function updateHardToggleVisibility(){
-    var wrap = document.getElementById('hardToggleWrap');
-    var show = selectedSum!==null && hardSums.indexOf(selectedSum)>=0;
-    wrap.style.display = show ? 'flex' : 'none';
-    document.getElementById('easyBtn').classList.toggle('active', !selectedHard);
-    document.getElementById('hardBtn').classList.toggle('active', selectedHard);
+  function renderHardwayPicker(){
+    var container = document.getElementById('hardwayPicker');
+    container.innerHTML = '';
+    hardSums.forEach(function(sum){
+      var isSelected = selectedSum===sum && selectedHard;
+      var combo = hardCombo[sum];
+      var tile = document.createElement('button');
+      tile.type = 'button';
+      tile.className = 'roll-tile' + (isSelected ? ' selected' : '');
+      tile.innerHTML = '<div class="dice-mini">'+dieFaceHTML(combo[0])+dieFaceHTML(combo[1])+'</div><div class="sum-label">'+sum+'</div>';
+      tile.addEventListener('click', function(){
+        selectedSum = sum;
+        selectedHard = true;
+        renderRollPicker();
+        renderHardwayPicker();
+      });
+      container.appendChild(tile);
+    });
   }
 
-  document.getElementById('easyBtn').addEventListener('click', function(){ selectedHard=false; renderRollPicker(); updateHardToggleVisibility(); });
-  document.getElementById('hardBtn').addEventListener('click', function(){ selectedHard=true; renderRollPicker(); updateHardToggleVisibility(); });
-
   renderRollPicker();
-  updateHardToggleVisibility();
+  renderHardwayPicker();
 
   var lineBetsSet = ['pass','dontpass','come','dontcome'];
-  var oddsBetsSet = ['passodds','dpodds'];
   function updateResolverFieldVisibility(){
     var bet = document.getElementById('resBetType').value;
     var needsPhase = lineBetsSet.indexOf(bet)>=0;
-    var needsPoint = needsPhase || oddsBetsSet.indexOf(bet)>=0;
     document.getElementById('resPhaseField').style.display = needsPhase ? '' : 'none';
-    document.getElementById('resPointField').style.display = needsPoint ? '' : 'none';
   }
   document.getElementById('resBetType').addEventListener('change', updateResolverFieldVisibility);
   updateResolverFieldVisibility();
@@ -993,9 +968,9 @@
     }
     var bet = document.getElementById('resBetType').value;
     var phase = document.getElementById('resPhase').value;
-    var point = parseInt(document.getElementById('resPoint').value,10);
-    var amount = parseFloat(document.getElementById('resAmount').value) || 0;
     var houseState = els();
+    var point = houseState.point;
+    var amount = parseFloat(document.getElementById('resAmount').value) || 0;
     var res = resolveBet(bet, selectedSum, selectedHard, phase, point, amount, houseState);
     renderResolveResult(res);
   });
